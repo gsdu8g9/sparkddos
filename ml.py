@@ -12,6 +12,10 @@ import Tkinter as Tk
 import itertools as it
 import os
 import atexit
+import random
+import urllib2
+import math
+
 
 DIR = '/home/adrianj/Desktop/p/'
 BACKGROUND_PATH = DIR+'WorldMap.jpg'
@@ -19,6 +23,13 @@ GOOD_PATH = DIR+'goodpoint.gif'
 BAD_PATH = DIR+'badpoint.gif'
 TITLE = "Clicks"
 
+FREQUENCY = 2000
+R_MAJOR = 6378137.0
+R_MINOR = 6356752.3142
+w = 1366
+h = 768
+
+block_size = 1024
 sc = SparkContext(appName=TITLE)
 sqlContext = SQLContext(sc)
 #data = sqlContext.read.format("libsvm").load("data/mllib/sample_multiclass_classification_data.txt")
@@ -86,6 +97,25 @@ class CircleDrawer(Tk.Frame):
 
 if __name__ == "__main__":
 
+    def mercatorProjection(latitude, longitude):
+        u = R_MAJOR*math.radians(longitude)
+
+        if latitude > 89.5:
+            latitude = 89.5
+        if latitude < -89.5:
+            latitude = -89.5
+
+        eccentricity = math.sqrt(1 - (R_MINOR/R_MAJOR)**2)
+        phi = math.radians(latitude)
+
+        x = eccentricity*math.sin(phi)
+        den = ((1.0 - x) / (1.0 + x))**(eccentricity/2.0)
+        num = math.tan((math.pi/2.0 - phi)/2)
+        v = 0 - R_MAJOR*math.log(num / den)
+
+        return (u, v)
+
+
     def removeFile():
 
         for i in range(1, 53):
@@ -96,9 +126,21 @@ if __name__ == "__main__":
             if os.path.isfile(fname):
                 os.remove(fname)
             
+    def URLListener():
+        
+        try:
+            buffer = response.read(block_size)
+            if buffer:
+                pass
 
+        except Exception, e:
+            print(e)
+        
+        CircleDrawer(window, "bad").drawCircle(random.randint(0, 10)*50, random.randint(0, 10)*50)
+        window.after(FREQUENCY, URLListener)
+
+    
     atexit.register(removeFile)
-
     image = Image.open(BACKGROUND_PATH)
     window = Tk.Tk()
     window.title(TITLE)
@@ -109,8 +151,10 @@ if __name__ == "__main__":
     panel = Tk.Label(window, image = img)
     panel.image = img
     panel.pack(side="top", fill="both", expand=True)
-    
-    CircleDrawer(window, "bad").drawCircle(40, 500)
+
+    response = urllib2.urlopen("http://developer.usa.gov/1usagov")
+    print("Listening...")
+    URLListener()    
     window.mainloop()
 
 
