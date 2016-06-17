@@ -1,0 +1,1 @@
+ ./bin/spark-submit /home/adrianj/Desktop/p/ml.py
