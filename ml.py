@@ -5,8 +5,8 @@
 
 # We use the native ml libraries
 from __future__ import print_function
-from pyspark import SparkContext
-from pyspark.sql import SQLContext
+# from pyspark import SparkContext
+# from pyspark.sql import SQLContext
 from PIL import Image, ImageDraw, ImageTk
 import Tkinter as Tk
 import itertools as it
@@ -15,23 +15,22 @@ import atexit
 import random
 import urllib2
 import math
+import json
 
 
-DIR = '/home/adrianj/Desktop/p/'
+DIR = '/home/adrianj/Desktop/MachineLearning/'
 BACKGROUND_PATH = DIR+'WorldMap.jpg'
 GOOD_PATH = DIR+'goodpoint.gif'
 BAD_PATH = DIR+'badpoint.gif'
 TITLE = "Clicks"
 
 FREQUENCY = 2000
-R_MAJOR = 6378137.0
-R_MINOR = 6356752.3142
+block_size = 512
 w = 1366
 h = 768
 
-block_size = 1024
-sc = SparkContext(appName=TITLE)
-sqlContext = SQLContext(sc)
+# sc = SparkContext(appName=TITLE)
+# sqlContext = SQLContext(sc)
 #data = sqlContext.read.format("libsvm").load("data/mllib/sample_multiclass_classification_data.txt")
 
 class ImageSequence:
@@ -94,24 +93,14 @@ class CircleDrawer(Tk.Frame):
         self.animate()
 
 
-
 if __name__ == "__main__":
 
     def mercatorProjection(latitude, longitude):
-        u = R_MAJOR*math.radians(longitude)
 
-        if latitude > 89.5:
-            latitude = 89.5
-        if latitude < -89.5:
-            latitude = -89.5
-
-        eccentricity = math.sqrt(1 - (R_MINOR/R_MAJOR)**2)
-        phi = math.radians(latitude)
-
-        x = eccentricity*math.sin(phi)
-        den = ((1.0 - x) / (1.0 + x))**(eccentricity/2.0)
-        num = math.tan((math.pi/2.0 - phi)/2)
-        v = 0 - R_MAJOR*math.log(num / den)
+        u = (longitude+180.0)*(w/360.0)
+        phi = latitude*math.pi / 180.0
+        m = math.log(math.tan((math.pi / 4) + (phi/2)))
+        v = (h/2.0) - (w*m/(2*math.pi))
 
         return (u, v)
 
@@ -125,18 +114,69 @@ if __name__ == "__main__":
             fname = (DIR)+(("{}{:02d}.gif").format("bpoint", i))
             if os.path.isfile(fname):
                 os.remove(fname)
-            
+    
+    global data
+    data = ""
+
+    def getData(chars):
+
+    	u, v = -1, -1
+    	index = -1
+
+    	for i in range(0, len(chars)):
+    		if chars[i].split(":")[0] == "\"ll\"":
+    			index = i
+    			break
+
+    	if index == -1:
+    		return (u,v)
+
+    	u = (chars[index].split(":")[1]).split("[")[1]
+    	v = (chars[index + 1]).split("]")[0]
+
+    	return (float(u), float(v))
+
+
     def URLListener():
         
+        a, b = "a", "b"
+        global data
+
         try:
             buffer = response.read(block_size)
             if buffer:
-                pass
+            	
+            	if data == "":
+            		data = buffer.split("{")[1]
+            	else:
+            		temp = buffer.split("}")
+            		if len(temp) <= 1:
+
+            			data += temp[0]
+
+            			if buffer[-1] == "}":
+            				
+            				chars = map(str, data.split(","))
+            				chars[0] = chars[0][3:]
+            				u, v = getData(chars)
+            				a, b = mercatorProjection(u,v)
+            				data = ""
+            		else:
+
+            			data += temp[0]
+            			chars = map(str, data.split(","))
+            			chars[0] = chars[0][3:]
+            			u, v = getData(chars)
+            			a, b = mercatorProjection(u, v)
+            			data = temp[1]
 
         except Exception, e:
             print(e)
         
-        CircleDrawer(window, "bad").drawCircle(random.randint(0, 10)*50, random.randint(0, 10)*50)
+        if a != "a" and b != "b":
+        	print(str(a) + " " + str(b))
+        	CircleDrawer(window, "bad").drawCircle(int(a), int(b))
+        
         window.after(FREQUENCY, URLListener)
 
     
@@ -154,8 +194,5 @@ if __name__ == "__main__":
 
     response = urllib2.urlopen("http://developer.usa.gov/1usagov")
     print("Listening...")
-    URLListener()    
+    URLListener()
     window.mainloop()
-
-
-
