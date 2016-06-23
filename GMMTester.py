@@ -9,6 +9,7 @@ from scipy.stats import logistic
 import matplotlib.pyplot as plt
 import numpy as np
 import pickle
+import math
 
 DIR="/home/adrianj/Desktop/MachineLearning/Resources/"
 TITLE="GaussianMixtureModel"
@@ -26,11 +27,24 @@ for i in gmm:
 	
 print("Model loaded.")
 
-def decodeString(name):
-	pass
+def decodeString(arg):
+	name = str(arg)
+	if len(name)%3 == 1:
+		name = '00' + name
+	elif len(name)%3 == 2:
+		name = '0' + name
+
+	decoded = ""
+	for i in xrange(len(name) - 1, 0, -3):
+		decoded = decoded + chr(name[i]) + chr(name[i - 1]) + chr(name[i - 2])
+
+	return decoded
+
 
 def inverseCantor(num):
-	pass
+	w = math.floor((math.sqrt(8*num + 1) -1) / 2.0)
+	t = (w**2 + w)/2.0
+	return (int(num-t), int(w-num + t))
 
 
 if __name__ == "__main__":
@@ -49,4 +63,7 @@ if __name__ == "__main__":
 			judgment += w*logistic.cdf(var.pdf(i))
 
 		if judgment < 0.5:
-			print "Anomaly detected"
+			lat, lon = inverseCantor(x[0])
+			url = decodeString(x[3])
+			cc = decodeString(x[2])
+			print("Anomaly detected at ["+str(lat)+","+str(lon)+"] from "+cc+" to "+url)
