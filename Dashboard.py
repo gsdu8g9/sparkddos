@@ -1,6 +1,6 @@
 #
-#   Simple example of a multilayer perceptron to detect credit card fraud.
-#   AXJ
+#   Simple example of a single layer neural net to detect DDoS attacks.
+#   AXJ 2016
 #
 
 # We use the native ml libraries
@@ -18,12 +18,13 @@ import math
 import json
 
 
-DIR = '/home/adrianj/Desktop/MachineLearning/'
+DIR = '/home/adrianj/Desktop/MachineLearning/Images/'
 BACKGROUND_PATH = DIR+'MapMercator.jpg'
 GOOD_PATH = DIR+'goodpoint.gif'
 BAD_PATH = DIR+'badpoint.gif'
-TITLE = "Clicks"
+URL = "http://developer.usa.gov/1usagov"
 
+TITLE = "Clicks"
 FREQUENCY = 2000
 block_size = 512
 w = 2058
@@ -195,7 +196,7 @@ if __name__ == "__main__":
     panel.image = img
     panel.pack(side="top", fill="both", expand=True)
 
-    response = urllib2.urlopen("http://developer.usa.gov/1usagov")
+    response = urllib2.urlopen(URL)
     print("Listening...")
     URLListener()
     window.mainloop()

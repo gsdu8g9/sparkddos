@@ -1,12 +1,35 @@
+#
+#   Parses the data as returned by the streamer.py class
+#   AXJ 2016
+#
+
+from pyspark.mllib.clustering import GaussianMixture
+from pyspark import SparkContext
+from scipy.stats import multivariate_normal
+from scipy.stats import logistic
 import matplotlib.pyplot as plt
 import numpy as np
+import string
 import math
+import pickle
 
 WIDTH = 2058
 HEIGHT = 1746
-OUTPUT_FILE = "trainingSet.txt"
-INPUT_FILE = "TrainingSet.json"
+DIR = "/home/adrianj/Desktop/MachineLearning/Resources/"
+OUTPUT_FILE = DIR+"newTrainingSet.txt"
+INPUT_FILE = DIR+"NewTrainingSet.json"
 
+def encodeString(name):
+	ans = ""
+	for char in name:
+		c = ord(char)
+		if c < 10:
+			ans += ans + '00' + str(c)
+		elif c < 100:
+			ans += ans + '0' + str(c)
+		else:
+			ans += ans + str(c)
+	return ans
 
 def cantorPairingFunction(x, y):
 	return int(0.5*(x+y)*(x+y+1) + y)
@@ -34,6 +57,26 @@ def doPlottingStuff():
 	plt.ylabel("Longitude")
 	plt.xlabel("Latitude")
 	plt.show()
+
+
+def generateRandomData(option, size):
+	
+	sc = SparkContext(appName=TITLE)
+	gmm = pickle.load(open(DIR+"Model.sav", 'rb'))
+	weights = pickle.load(open(DIR+"Weights.sav", 'rb'))
+	numberOfGaussians = 180
+
+	outputfile = open(DIR+"TrainingSet.txt", 'w')
+
+	if option = "anomaly":
+		pass	
+	else:
+		pass
+
+	for _ in range(size):
+		pass
+
+	outputfile.close()
 
 
 ###
@@ -78,11 +121,14 @@ for line in inputFile:
 			value = tmp[1]
 		dic[key] = value
 
-
 	## Write to outputfile
-	# cantor = cantorPairingFunction(dic["ll"][0], dic["ll"][1])
-	a, b = mercatorProjection(dic["ll"][0], dic["ll"][1])
-	outputFile.write(str(a) +" " + str(HEIGHT - b) + '\n') #Height - b is necessary so that plots look correct
+	cantor = cantorPairingFunction(dic["ll"][0], dic["ll"][1])
+	url = encodeString(dic["u"])
+	cc = encodeString(dic["c"])
+	outputFile.write(str(cantor) + " " + dic["t"] + " " + cc +" " + url + " "+ dic["nk"])
+	#a, b = mercatorProjection(dic["ll"][0], dic["ll"][1])
+	#outputFile.write(str(a) +" " + str(HEIGHT - b) + '\n') #Height - b is necessary so that plots look correct
+	
 
 inputFile.close()
 outputFile.close()
