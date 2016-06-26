@@ -16,8 +16,8 @@ import pickle
 WIDTH = 2058
 HEIGHT = 1746
 DIR = "/home/adrianj/Desktop/MachineLearning/Resources/"
-OUTPUT_FILE = DIR+"newTestSet.txt"
-INPUT_FILE = DIR+"newTestSet.json"
+OUTPUT_FILE = DIR+"atemporalTrain.txt"
+INPUT_FILE = DIR+"newTrainingSet.json"
 
 def encodeString(name):
 	ans = []
@@ -129,7 +129,7 @@ for line in inputFile:
 	#shorturl = encodeString(dic["hh"])
 	refurl = encodeString(dic["r"])
 	cc = encodeString(dic["c"])
-	outputFile.write(str(cantor) + " " + dic["t"] + " " + cc +" "+ dic["nk"] +'\n')
+	outputFile.write(str(cantor) + " " + cc +" "+ dic["nk"] +'\n')
 	#a, b = mercatorProjection(dic["ll"][0], dic["ll"][1])
 	#outputFile.write(str(a) +" " + str(HEIGHT - b) + '\n') #Height - b is necessary so that plots look correct
 	

@@ -60,12 +60,10 @@ print(parsedData)
 		if judgment < 0.5:
 			lat, lon = inverseCantor(i[0])
 			usr = decodeString(i[3])
-
 			if usr == 0:
 				usr = "Unknown user."
 			else:
 				usr = "Known user."
-
 			cc = decodeString(i[2])
 			print("Anomaly detected at ["+str(lat)+","+str(lon)+"] from " +cc + ": " + usr)
 '''
