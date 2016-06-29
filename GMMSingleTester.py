@@ -11,13 +11,20 @@ import pickle
 import math
 
 DIR="/home/adrianj/Desktop/MachineLearning/Resources/"
-FILE_PATH = DIR+"newTestSet.txt"
+FILE_PATH = DIR+"atemporalTrain.txt"
 TITLE="GaussianMixtureModel"
 
 sc = SparkContext(appName=TITLE)
-gaussians = GaussianMixtureModel.load(sc, DIR+"GMM/")
-
+gaussians = GaussianMixtureModel.load(sc, DIR+"GMMA/")
 print("Model loaded.")
+
+NUM_GAUSSIANS = gaussians.k
+DIM = 3
+score = 0
+
+
+def BIC(x):
+	return -2*math.log(x, 2) + NUM_GAUSSIANS*math.log(DIM,2)
 
 def decodeString(arg):
 	name = str(arg)
@@ -25,13 +32,10 @@ def decodeString(arg):
 		name = '00' + name
 	elif len(name)%3 == 2:
 		name = '0' + name
-
 	decoded = ""
 	for i in xrange(len(name) - 1, 0, -3):
 		decoded = decoded + chr(name[i]) + chr(name[i - 1]) + chr(name[i - 2])
-
 	return decoded
-
 
 def inverseCantor(num):
 	w = math.floor((math.sqrt(8*num + 1) -1) / 2.0)
@@ -39,11 +43,18 @@ def inverseCantor(num):
 	return (int(num-t), int(w-num + t))
 
 
-#sigmoid = logistic.cdf(x)
-data = sc.textFile(FILE_PATH, 'rb')
+data = sc.textFile(FILE_PATH)
 parsedData = data.map(lambda line: np.array([float(x) for x in line.strip().split(' ')]))
-	
-print(parsedData)
+indexes = gaussians.predict(parsedData).collect()
+arrays = gaussians.predictSoft(parsedData).collect()
+
+for i in range(len(indexes)):
+	error = arrays[i][indexes[i]]
+	score += BIC(error)
+
+print score	
+
+
 
 '''
 	file = open(DIR+"testSet.txt", 'rb')
