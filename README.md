@@ -2,6 +2,8 @@
 
 *Includes the demo for Apache Spark + InterSystems Cache.*
 
+NOTE - THE CODE IS NOT OPERATIONAL
+
 From a data set recorded from 1.usa.gov, it will detect a (simulated) DDoS attack on .gov sites.
 
 Steps to set it up (first two steps from scratch, else jump to the third step):
